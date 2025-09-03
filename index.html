@@ -1,124 +1,165 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>TXT Converter - Style1 ➝ Style2</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: linear-gradient(135deg, #1e3c72, #2a5298);
-      color: #fff;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 40px;
-    }
-    h1 {
-      margin-bottom: 20px;
-      font-size: 28px;
-    }
-    .card {
-      background: #ffffff10;
-      border-radius: 12px;
-      padding: 20px;
-      width: 600px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-    }
-    input[type=file] {
-      margin: 10px 0;
-      padding: 8px;
-      border: none;
-      border-radius: 6px;
-      background: #fff;
-      color: #000;
-    }
-    button {
-      margin: 10px 5px;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      background: #4cafef;
-      color: #fff;
-      font-weight: bold;
-      transition: background 0.3s;
-    }
-    button:hover {
-      background: #2e9afe;
-    }
-    textarea {
-      width: 100%;
-      height: 250px;
-      margin-top: 10px;
-      padding: 10px;
-      border-radius: 8px;
-      border: none;
-      resize: vertical;
-      font-family: monospace;
-      font-size: 14px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Style1 to Style2 Converter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            max-width: 800px;
+            width: 100%;
+        }
+        h1 {
+            text-align: center;
+            color: #4a4a8c;
+        }
+        .section {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        textarea {
+            width: 100%;
+            height: 150px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: vertical;
+            font-family: monospace;
+        }
+        button {
+            background-color: #4a4a8c;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #3a3a6c;
+        }
+        #output {
+            white-space: pre-wrap;
+            font-family: monospace;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 4px;
+            min-height: 150px;
+            overflow: auto;
+        }
+        .file-input {
+            margin-bottom: 10px;
+        }
+        .buttons {
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
-  <h1>TXT Converter (Style 1 ➝ Style 2)</h1>
-  <div class="card">
-    <input type="file" id="fileInput" accept=".txt">
-    <button onclick="convertFile()">Convert</button>
-    <button onclick="downloadFile()">Download</button>
-    <textarea id="output" placeholder="Converted content will appear here..."></textarea>
-  </div>
+    <div class="container">
+        <h1>Style1 to Style2 Converter</h1>
+        
+        <div class="section">
+            <label for="inputText">Paste Style1 Text or Upload File:</label>
+            <textarea id="inputText" placeholder="Paste your Style1 text here..."></textarea>
+            <input type="file" id="fileInput" class="file-input" accept=".txt">
+        </div>
+        
+        <div class="buttons">
+            <button onclick="convertText()">Convert</button>
+            <button onclick="downloadResult()" id="downloadBtn" disabled>Download as TXT</button>
+        </div>
+        
+        <div class="section">
+            <label>Converted Style2 Output:</label>
+            <div id="output"></div>
+        </div>
+    </div>
 
-  <script>
-    let convertedText = "";
+    <script>
+        let convertedData = '';
 
-    function convertFile() {
-      const file = document.getElementById("fileInput").files[0];
-      if (!file) {
-        alert("Please upload a Style1 TXT file first.");
-        return;
-      }
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const lines = e.target.result.split(/\r?\n/);
-        let result = [];
-        let counter = 1;
+        // Handle file upload
+        document.getElementById('fileInput').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('inputText').value = e.target.result;
+                };
+                reader.readAsText(file);
+            }
+        });
 
-        for (let line of lines) {
-          if (!line.trim() || line.startsWith("Serial No")) continue; // skip headers/empty
-          const parts = line.trim().split(/\s+/);
-          if (parts.length < 5) continue;
+        function convertText() {
+            const input = document.getElementById('inputText').value;
+            const lines = input.split('\n');
+            const outputLines = [];
+            let index = 1;
 
-          const serial = parts[0];
-          const pin = parts[1];
-          const network = parts[2];
-          const amount = parts[3].replace("₦","");
-          const date = parts.slice(4).join(" ");
+            lines.forEach(line => {
+                const trimmed = line.trim();
+                if (trimmed === '' || trimmed === 'Serial No. Pin Network Amount Date') {
+                    return; // Skip headers and empty lines
+                }
 
-          result.push(
-            `${counter}\t${date.replace(" ", " @")}\t${network}\t${amount}\t${serial}\t${pin}`
-          );
-          counter++;
+                const parts = trimmed.split(/\s+/);
+                if (parts.length >= 6) {
+                    const serial = parts[0];
+                    const pin = parts[1];
+                    const network = parts[2];
+                    const amount = parts[3].replace(/[^0-9]/g, ''); // Remove ₦ or other non-digits
+                    const date = parts[4];
+                    const time = parts[5];
+
+                    // Convert date from YYYY-MM-DD to DD/MM/YYYY
+                    const [year, month, day] = date.split('-');
+                    const formattedDate = `${day}/${month}/${year} @${time}`;
+
+                    // Build Style2 line: index\t date\tt network\t amount\t serial\t pin
+                    outputLines.push(`${index}\t${formattedDate}\t${network}\t${amount}\t${serial}\t${pin}`);
+                    index++;
+                }
+            });
+
+            convertedData = outputLines.join('\n');
+            document.getElementById('output').textContent = convertedData || 'No valid data to convert.';
+            document.getElementById('downloadBtn').disabled = !convertedData;
         }
 
-        convertedText = result.join("\n");
-        document.getElementById("output").value = convertedText;
-      };
-      reader.readAsText(file);
-    }
-
-    function downloadFile() {
-      if (!convertedText) {
-        alert("No converted text to download.");
-        return;
-      }
-      const blob = new Blob([convertedText], { type: "text/plain" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "converted_style2.txt";
-      a.click();
-      URL.revokeObjectURL(url);
-    }
-  </script>
+        function downloadResult() {
+            if (!convertedData) return;
+            const blob = new Blob([convertedData], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'style2.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+    </script>
 </body>
 </html>
